@@ -29,7 +29,7 @@ discode_find_dcl(PCLCoreTypes)
 discode_find_dcl(SIFTObjectModel)
 
 # Check, whether all necessary libraries are linked
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,defs") 
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,defs")
 
 # ##############################################################################
 # Add source directories
