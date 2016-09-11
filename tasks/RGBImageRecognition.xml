@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Task>
+    <Reference>
+        <Author>
+            <name>Aleksandra Karbarczyk</name>
+            <link>akarbarczyk@gmail.com</link>
+        </Author>
+
+        <Description>
+            <brief>TODO</brief>
+            <full>TODO</full>
+        </Description>
+    </Reference>
+
+    <Subtasks>
+        <Subtask name="Processing">
+            <Executor name="Exec1" period="1">
+
+                <!-- Model data -->
+                <Component name="SOMJSONReader" type="SIFTObjectModel:SOMJSONReader" priority="1" bump="0">
+                    <param name="filenames">%[TASK_LOCATION]%/../data/herbapol_mieta_model/herbapol_mieta1.json</param>
+                </Component>
+
+                <!-- Scene data -->
+                <Component name="Sequence" type="CvBasic:Sequence" priority="2" bump="0">
+                    <param name="sequence.directory">%[TASK_LOCATION]%/../data/scenes/</param>
+                    <param name="sequence.pattern">.*\.jpg</param>
+                    <param name="mode.loop">1</param>
+                </Component>
+
+                <Component name="SIFT" type="CvBasic:CvSIFT" priority="3" bump="0">
+                </Component>
+
+                <!-- Processing -->
+                <Component name="MatchCorrespondences" type="ObjectRecognition:MatchCorrespondences" priority="4" bump="0">
+                </Component>
+
+            </Executor>
+        </Subtask>
+
+    </Subtasks>
+
+    <DataStreams>
+        <!-- Read scene data -->
+        <Source name="Sequence.out_img">
+            <sink>SIFT.in_img</sink>
+        </Source>
+
+        <Source name="SIFT.out_features">
+            <sink>MatchCorrespondences.in_scene_features</sink>
+        </Source>
+
+        <Source name="SIFT.out_descriptors">
+            <sink>MatchCorrespondences.in_scene_descriptors</sink>
+        </Source>
+
+        <!-- Read model data -->
+        <Source name="SOMJSONReader.out_model_labels">
+            <sink>MatchCorrespondences.in_model_labels</sink>
+        </Source>
+
+        <Source name="SOMJSONReader.out_model_clouds_xyzrgb">
+            <sink>MatchCorrespondences.in_model_clouds_xyzrgb</sink>
+        </Source>
+
+        <Source name="SOMJSONReader.out_model_clouds_xyzsift">
+            <sink>MatchCorrespondences.in_model_clouds_xyzsift</sink>
+        </Source>
+
+        <Source name="SOMJSONReader.out_model_vertices_xyz">
+            <sink>MatchCorrespondences.in_model_vertices_xyz</sink>
+        </Source>
+
+        <Source name="SOMJSONReader.out_model_triangles">
+            <sink>MatchCorrespondences.in_model_triangles</sink>
+        </Source>
+
+        <Source name="SOMJSONReader.out_model_bounding_boxes">
+            <sink>MatchCorrespondences.in_model_bounding_boxes</sink>
+        </Source>
+    </DataStreams>
+</Task>

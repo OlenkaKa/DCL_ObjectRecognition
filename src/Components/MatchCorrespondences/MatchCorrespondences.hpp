@@ -10,6 +10,8 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 
+#include <boost/thread/shared_mutex.hpp>
+
 #include "Component_Aux.hpp"
 #include "Component.hpp"
 #include "DataStream.hpp"
@@ -71,27 +73,44 @@ protected:
      */
     bool onStop();
 
+    /// Model typedefs
+    typedef std::vector <std::string> ModelLabels;
+    typedef std::vector <pcl::PointCloud<pcl::PointXYZRGB>::Ptr> ModelCloudsXYZRGB;
+    typedef std::vector <pcl::PointCloud<PointXYZSIFT>::Ptr> ModelCloudsXYZSIFT;
+    typedef std::vector <pcl::PointCloud<pcl::PointXYZ>::Ptr> ModelVerticesXYZ;
+    typedef std::vector <std::vector<pcl::Vertices> > ModelTriangles;
+    typedef std::vector <std::vector<pcl::Vertices> > ModelBoundingBoxes;
 
-    // Input data streams
-    Base::DataStreamIn <Types::Features> in_scene_features;
-    Base::DataStreamIn <cv::Mat> in_scene_descriptors;
-    Base::DataStreamIn <std::vector<std::string> > in_model_names;
-    Base::DataStreamIn <std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> > in_model_clouds_xyzrgb;
-    Base::DataStreamIn <std::vector<pcl::PointCloud<PointXYZSIFT>::Ptr> > in_model_clouds_xyzsift;
-    Base::DataStreamIn <std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> > in_model_vertices_xyz;
-    Base::DataStreamIn <std::vector<std::vector<pcl::Vertices> > > in_model_triangles;
-    Base::DataStreamIn <std::vector<std::vector<pcl::Vertices> > > in_model_bounding_boxes;
+    /// Model data
+    ModelLabels model_labels_;
+    ModelCloudsXYZRGB model_clouds_xyzrgb_;
+    ModelCloudsXYZSIFT model_clouds_xyzsift_;
+    ModelVerticesXYZ model_vertices_xyz_;
+    ModelTriangles model_triangles_;
+    ModelBoundingBoxes model_bounding_boxes_;
 
-    // Output data streams
-    Base::DataStreamOut <Types::Objects3D::Object3D> out_object;
+    /// Synchronization
+    boost::shared_mutex model_lock_;
 
-    // Handlers
+    /// Input data streams
+    /// Scene
+    Base::DataStreamIn <Types::Features> in_scene_features_;
+    Base::DataStreamIn <cv::Mat> in_scene_descriptors_;
+    /// Model
+    Base::DataStreamIn <ModelLabels> in_model_labels_;
+    Base::DataStreamIn <ModelCloudsXYZRGB> in_model_clouds_xyzrgb_;
+    Base::DataStreamIn <ModelCloudsXYZSIFT> in_model_clouds_xyzsift_;
+    Base::DataStreamIn <ModelVerticesXYZ> in_model_vertices_xyz_;
+    Base::DataStreamIn <ModelTriangles> in_model_triangles_;
+    Base::DataStreamIn <ModelBoundingBoxes> in_model_bounding_boxes_;
 
-    // Properties
+    /// Output data streams
+    Base::DataStreamOut <Types::Objects3D::Object3D> out_object_;
+
+    /// Properties
     //Base::Property<std::string> test_prop;
 
-
-    // Handlers
+    /// Handlers
     void onNewScene();
 
     void onNewModel();

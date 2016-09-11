@@ -1,0 +1,7 @@
+{
+    "name": "herbapol_mieta1",
+    "type": "SIFTObjectModel",
+    "mean_viewpoint_features_number": "-1",
+    "cloud_xyzsift": "herbapol_mieta1_xyzsift.pcd",
+    "cloud_xyzrgb": "herbapol_mieta1_xyzrgb.pcd"
+}

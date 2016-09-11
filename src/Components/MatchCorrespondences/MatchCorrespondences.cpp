@@ -8,10 +8,12 @@
 #include <string>
 
 #include <boost/bind.hpp>
+#include <boost/thread/locks.hpp>
 
 #include "MatchCorrespondences.hpp"
 #include "Common/Logger.hpp"
 
+using namespace boost;
 using namespace cv;
 using namespace std;
 
@@ -29,27 +31,29 @@ MatchCorrespondences::~MatchCorrespondences() {
 }
 
 void MatchCorrespondences::prepareInterface() {
-    // Register data streams, events and event handlers HERE!
-    registerStream("in_scene_features", &in_scene_features);
-    registerStream("in_scene_descriptors", &in_scene_descriptors);
-    registerStream("in_model_names", &in_model_names);
-    registerStream("in_model_clouds_xyzrgb", &in_model_clouds_xyzrgb);
-    registerStream("in_model_clouds_xyzsift", &in_model_clouds_xyzsift);
-    registerStream("in_model_vertices_xyz", &in_model_vertices_xyz);
-    registerStream("in_model_triangles", &in_model_triangles);
-    registerStream("in_model_bounding_boxes", &in_model_bounding_boxes);
-    registerStream("out_object", &out_object);
+    // Register data streams, events and event handlers
+    registerStream("in_scene_features", &in_scene_features_);
+    registerStream("in_scene_descriptors", &in_scene_descriptors_);
+    registerStream("in_model_labels", &in_model_labels_);
+    registerStream("in_model_clouds_xyzrgb", &in_model_clouds_xyzrgb_);
+    registerStream("in_model_clouds_xyzsift", &in_model_clouds_xyzsift_);
+    registerStream("in_model_vertices_xyz", &in_model_vertices_xyz_);
+    registerStream("in_model_triangles", &in_model_triangles_);
+    registerStream("in_model_bounding_boxes", &in_model_bounding_boxes_);
+    registerStream("out_object", &out_object_);
+
     // Register handlers
-    registerHandler("onNewScene", boost::bind(&MatchCorrespondences::onNewScene, this));
-    addDependency("onNewScene", &in_scene_features);
-    addDependency("onNewScene", &in_scene_descriptors);
-    registerHandler("onNewModel", boost::bind(&MatchCorrespondences::onNewModel, this));
-    addDependency("onNewModel", &in_model_names);
-	addDependency("onNewModel", &in_model_bounding_boxes);
-	addDependency("onNewModel", &in_model_triangles);
-	addDependency("onNewModel", &in_model_vertices_xyz);
-	addDependency("onNewModel", &in_model_clouds_xyzsift);
-	addDependency("onNewModel", &in_model_clouds_xyzrgb);
+    registerHandler("onNewScene", bind(&MatchCorrespondences::onNewScene, this));
+    addDependency("onNewScene", &in_scene_features_);
+    addDependency("onNewScene", &in_scene_descriptors_);
+
+    registerHandler("onNewModel", bind(&MatchCorrespondences::onNewModel, this));
+    addDependency("onNewModel", &in_model_labels_);
+	addDependency("onNewModel", &in_model_bounding_boxes_);
+	addDependency("onNewModel", &in_model_triangles_);
+	addDependency("onNewModel", &in_model_vertices_xyz_);
+	addDependency("onNewModel", &in_model_clouds_xyzsift_);
+	addDependency("onNewModel", &in_model_clouds_xyzrgb_);
 }
 
 bool MatchCorrespondences::onInit() {
@@ -74,18 +78,23 @@ bool MatchCorrespondences::onStart() {
 
 void MatchCorrespondences::onNewScene() {
     CLOG(LTRACE) << "MatchCorrespondences::onNewScene";
+    shared_lock<shared_mutex> read_lock(model_lock_);
+
+    vector<KeyPoint> scene_keypoints = in_scene_features_.read().features;
+    Mat scene_descriptors = in_scene_descriptors_.read();
     // TODO
 }
 
 void MatchCorrespondences::onNewModel() {
     CLOG(LTRACE) << "MatchCorrespondences::onNewModel";
+    unique_lock<shared_mutex> write_lock(model_lock_);
 
-    // TODO
-    vector <string> names = in_model_names.read();
-    for (int i = 0; i < names.size(); ++i) {
-        CLOG(LERROR) << names[i];
-    }
-
+    model_labels_ = in_model_labels_.read();
+    model_clouds_xyzrgb_ = in_model_clouds_xyzrgb_.read();
+    model_clouds_xyzsift_ = in_model_clouds_xyzsift_.read();
+    model_vertices_xyz_ = in_model_vertices_xyz_.read();
+    model_triangles_ = in_model_triangles_.read();
+    model_bounding_boxes_ = in_model_bounding_boxes_.read();
 }
 
 
