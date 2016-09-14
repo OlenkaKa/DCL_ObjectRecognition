@@ -73,15 +73,19 @@ protected:
      */
     bool onStop();
 
+    /// Consts
+    static const unsigned int DESCRIPTOR_SIZE;
+
     /// Model typedefs
-    typedef std::vector <std::string> ModelLabels;
-    typedef std::vector <pcl::PointCloud<pcl::PointXYZRGB>::Ptr> ModelCloudsXYZRGB;
-    typedef std::vector <pcl::PointCloud<PointXYZSIFT>::Ptr> ModelCloudsXYZSIFT;
-    typedef std::vector <pcl::PointCloud<pcl::PointXYZ>::Ptr> ModelVerticesXYZ;
-    typedef std::vector <std::vector<pcl::Vertices> > ModelTriangles;
-    typedef std::vector <std::vector<pcl::Vertices> > ModelBoundingBoxes;
+    typedef std::vector<std::string> ModelLabels;
+    typedef std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> ModelCloudsXYZRGB;
+    typedef std::vector<pcl::PointCloud<PointXYZSIFT>::Ptr> ModelCloudsXYZSIFT;
+    typedef std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> ModelVerticesXYZ;
+    typedef std::vector<std::vector<pcl::Vertices> > ModelTriangles;
+    typedef std::vector<std::vector<pcl::Vertices> > ModelBoundingBoxes;
 
     /// Model data
+    // TODO remove unnecessary
     ModelLabels model_labels_;
     ModelCloudsXYZRGB model_clouds_xyzrgb_;
     ModelCloudsXYZSIFT model_clouds_xyzsift_;
@@ -89,23 +93,26 @@ protected:
     ModelTriangles model_triangles_;
     ModelBoundingBoxes model_bounding_boxes_;
 
+    std::vector<cv::Point3f> model_points_;
+    cv::Mat model_descriptors_;
+
     /// Synchronization
     boost::shared_mutex model_lock_;
 
     /// Input data streams
     /// Scene
-    Base::DataStreamIn <Types::Features> in_scene_features_;
-    Base::DataStreamIn <cv::Mat> in_scene_descriptors_;
+    Base::DataStreamIn<Types::Features> in_scene_features_;
+    Base::DataStreamIn<cv::Mat> in_scene_descriptors_;
     /// Model
-    Base::DataStreamIn <ModelLabels> in_model_labels_;
-    Base::DataStreamIn <ModelCloudsXYZRGB> in_model_clouds_xyzrgb_;
-    Base::DataStreamIn <ModelCloudsXYZSIFT> in_model_clouds_xyzsift_;
-    Base::DataStreamIn <ModelVerticesXYZ> in_model_vertices_xyz_;
-    Base::DataStreamIn <ModelTriangles> in_model_triangles_;
-    Base::DataStreamIn <ModelBoundingBoxes> in_model_bounding_boxes_;
+    Base::DataStreamIn<ModelLabels> in_model_labels_;
+    Base::DataStreamIn<ModelCloudsXYZRGB> in_model_clouds_xyzrgb_;
+    Base::DataStreamIn<ModelCloudsXYZSIFT> in_model_clouds_xyzsift_;
+    Base::DataStreamIn<ModelVerticesXYZ> in_model_vertices_xyz_;
+    Base::DataStreamIn<ModelTriangles> in_model_triangles_;
+    Base::DataStreamIn<ModelBoundingBoxes> in_model_bounding_boxes_;
 
     /// Output data streams
-    Base::DataStreamOut <Types::Objects3D::Object3D> out_object_;
+    Base::DataStreamOut<Types::Objects3D::Object3D> out_object_;
 
     /// Properties
     //Base::Property<std::string> test_prop;
