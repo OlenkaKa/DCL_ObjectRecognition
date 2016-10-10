@@ -23,10 +23,11 @@ namespace MatchCorrespondences {
 const unsigned int MatchCorrespondences::DESCRIPTOR_SIZE = 128;
 
 MatchCorrespondences::MatchCorrespondences(const std::string &name) :
-        Base::Component(name) {//,
-    //test_prop("test_prop", NULL, "test") {
-    //registerProperty(test_prop);
-
+        Base::Component(name),
+        ratio_("ratio", boost::bind(&MatchCorrespondences::onRatioChanged, this, _1, _2), 0.8),
+        matcher_type_("matcher", boost::bind(&MatchCorrespondences::onMatcherTypeChanged, this, _1, _2), "flann") {
+    registerProperty(ratio_);
+    registerProperty(matcher_type_);
 }
 
 MatchCorrespondences::~MatchCorrespondences() {
@@ -60,6 +61,7 @@ void MatchCorrespondences::prepareInterface() {
 
 bool MatchCorrespondences::onInit() {
     CLOG(LTRACE) << "MatchCorrespondences::onInit";
+    initMatcher();
     return true;
 }
 
@@ -85,17 +87,20 @@ void MatchCorrespondences::onNewScene() {
     vector<KeyPoint> scene_keypoints = in_scene_features_.read().features;
     Mat scene_descriptors = in_scene_descriptors_.read();
 
-    FlannBasedMatcher matcher;
-    vector<DMatch> matches;
-    matcher.match(scene_descriptors, model_descriptors_, matches);
+    vector<vector<DMatch> > matches;
+    matcher_->knnMatch(scene_descriptors, model_descriptors_, matches, 2);
 
     vector<DMatch> good_matches;
-    good_matches = matches; // TODO filter good matches
+    for (vector<vector<DMatch> >::iterator it = matches.begin(), end_it = matches.end(); it != end_it; ++it) {
+        if ((*it)[0].distance / (*it)[1].distance < ratio_) {
+            good_matches.push_back((*it)[0]);
+        }
+    }
 
     vector<Point3f> object_points3d;
     vector<Point2f> object_points2d;
 
-    for (int i = 0; i < good_matches.size(); ++i) {
+    for (size_t i = 0, matches_size = good_matches.size(); i < matches_size; ++i) {
         object_points3d.push_back(model_points_[good_matches[i].trainIdx]);
         object_points2d.push_back(scene_keypoints[good_matches[i].queryIdx].pt);
     }
@@ -135,6 +140,34 @@ void MatchCorrespondences::onNewModel() {
     model_descriptors_ = temp_descriptors;
 }
 
+void MatchCorrespondences::onRatioChanged(float old_value, float new_value) {
+    if (new_value > 1.0 || new_value < 0.0) {
+        CLOG(LWARNING) << "Cannot set radio to " << new_value << " (ratio = " << old_value << " will be used)";
+        ratio_ = old_value;
+    } else {
+        ratio_ = new_value;
+        CLOG(LTRACE) << "MatchCorrespondences::onRatioChanged - from " << old_value << " to " << ratio_;
+    }
+}
+
+void MatchCorrespondences::onMatcherTypeChanged(const string& old_value, const string& new_value) {
+    CLOG(LERROR) << "MatchCorrespondences::onMatcherTypeChanged";
+    if (validMatcherType(new_value)) {
+        matcher_type_ = new_value;
+        initMatcher();
+    }
+}
+
+void MatchCorrespondences::initMatcher() {
+    if (string("flann").compare(matcher_type_) == 0) {
+        matcher_ = makePtr<FlannBasedMatcher>();
+    }
+}
+
+bool MatchCorrespondences::validMatcherType(const string& value) {
+    // TODO
+    return true;
+}
 
 } //: namespace MatchCorrespondences
 } //: namespace Processors

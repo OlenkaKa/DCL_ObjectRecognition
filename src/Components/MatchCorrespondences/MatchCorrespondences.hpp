@@ -96,6 +96,9 @@ protected:
     std::vector<cv::Point3f> model_points_;
     cv::Mat model_descriptors_;
 
+    /// Matcher
+    cv::Ptr<cv::DescriptorMatcher> matcher_;
+
     /// Synchronization
     boost::shared_mutex model_lock_;
 
@@ -115,13 +118,18 @@ protected:
     Base::DataStreamOut<Types::Objects3D::Object3D> out_object_;
 
     /// Properties
-    //Base::Property<std::string> test_prop;
+    Base::Property<float> ratio_;
+    Base::Property<std::string> matcher_type_;
 
     /// Handlers
     void onNewScene();
-
     void onNewModel();
+    void onRatioChanged(float old_value, float new_value);
+    void onMatcherTypeChanged(const std::string& old_value, const std::string& new_value);
 
+    /// Others
+    void initMatcher();
+    bool validMatcherType(const std::string& value);
 };
 
 } //: namespace MatchCorrespondences

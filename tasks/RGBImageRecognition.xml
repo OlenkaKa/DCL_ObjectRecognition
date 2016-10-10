@@ -15,24 +15,43 @@
     <Subtasks>
         <Subtask name="Processing">
             <Executor name="Exec1" period="1">
+                <!-- Camera data -->
+                <Component name="CameraInfo" type="CvCoreTypes:CameraInfoProvider" priority="1">
+                    <param name="width">768</param>
+                    <param name="height">576</param>
+                    <param name="camera_matrix">525 0 319.5 ; 0 525 239.5 ; 0 0 1</param>
+                    <param name="dist_coeffs">0 0 0 0 0 0 0 0</param>
+                </Component>
 
                 <!-- Model data -->
-                <Component name="SOMJSONReader" type="SIFTObjectModel:SOMJSONReader" priority="1" bump="0">
+                <Component name="SOMJSONReader" type="SIFTObjectModel:SOMJSONReader" priority="2" bump="0">
                     <param name="filenames">%[TASK_LOCATION]%/../data/herbapol_mieta_model/herbapol_mieta1.json</param>
                 </Component>
 
                 <!-- Scene data -->
-                <Component name="Sequence" type="CvBasic:Sequence" priority="2" bump="0">
+                <Component name="Sequence" type="CvBasic:Sequence" priority="3" bump="0">
                     <param name="sequence.directory">%[TASK_LOCATION]%/../data/scenes/</param>
-                    <param name="sequence.pattern">.*\.jpg</param>
+                    <!--<param name="sequence.pattern">.*\.jpg</param>-->
+                    <!--<param name="sequence.pattern">scene2.jpg</param>-->
+                    <param name="sequence.pattern">h_back.png</param>
                     <param name="mode.loop">1</param>
                 </Component>
 
-                <Component name="SIFT" type="CvBasic:CvSIFT" priority="3" bump="0">
+                <!-- Processing -->
+                <Component name="SIFT" type="CvBasic:CvSIFT" priority="4" bump="0">
                 </Component>
 
-                <!-- Processing -->
-                <Component name="MatchCorrespondences" type="ObjectRecognition:MatchCorrespondences" priority="4" bump="0">
+                <Component name="MatchCorrespondences" type="ObjectRecognition:MatchCorrespondences" priority="5" bump="0">
+                    <param name="ratio">0.8</param>
+                </Component>
+
+                <Component name="SolvePnP" type="CvBasic:CvSolvePnP" priority="6" bump="0">
+                </Component>
+
+                <Component name="ROSPublisher" type="ROSIntegration:RecognizedObjectPublisher" priority="7" bump="0">
+                    <param name="parent.frame">/test</param>
+                    <param name="ros.node">testn</param>
+                    <param name="ros.topic">testt</param>
                 </Component>
 
             </Executor>
@@ -41,7 +60,7 @@
     </Subtasks>
 
     <DataStreams>
-        <!-- Read scene data -->
+        <!-- Read and process scene data -->
         <Source name="Sequence.out_img">
             <sink>SIFT.in_img</sink>
         </Source>
@@ -54,7 +73,7 @@
             <sink>MatchCorrespondences.in_scene_descriptors</sink>
         </Source>
 
-        <!-- Read model data -->
+        <!-- Read model data and match with scene -->
         <Source name="SOMJSONReader.out_model_labels">
             <sink>MatchCorrespondences.in_model_labels</sink>
         </Source>
@@ -77,6 +96,20 @@
 
         <Source name="SOMJSONReader.out_model_bounding_boxes">
             <sink>MatchCorrespondences.in_model_bounding_boxes</sink>
+        </Source>
+
+        <!-- Find object position -->
+        <Source name="MatchCorrespondences.out_object">
+            <sink>SolvePnP.in_object3d</sink>
+        </Source>
+
+        <Source name="CameraInfo.out_camera_info">
+            <sink>SolvePnP.in_camera_info</sink>
+        </Source>
+
+        <!-- Send result to ROS -->
+        <Source name="SolvePnP.out_homogMatrix">
+            <sink>ROSPublisher.in_object_pose</sink>
         </Source>
     </DataStreams>
 </Task>
