@@ -49,9 +49,10 @@
                 </Component>
 
                 <Component name="ROSPublisher" type="ROSIntegration:RecognizedObjectPublisher" priority="7" bump="0">
-                    <param name="parent.frame">/test</param>
-                    <param name="ros.node">testn</param>
-                    <param name="ros.topic">testt</param>
+                    <!-- <param name="parent.frame">/p_c_optical_frame</param> -->
+                    <param name="parent.frame">/t_c_optical_frame</param>
+                    <param name="ros.node">recognize_object_node</param>
+                    <param name="ros.topic">recognized_objects</param>
                 </Component>
 
             </Executor>
@@ -108,6 +109,10 @@
         </Source>
 
         <!-- Send result to ROS -->
+        <Source name="MatchCorrespondences.out_object_name">
+            <sink>ROSPublisher.in_object_name</sink>
+        </Source>
+
         <Source name="SolvePnP.out_homogMatrix">
             <sink>ROSPublisher.in_object_pose</sink>
         </Source>

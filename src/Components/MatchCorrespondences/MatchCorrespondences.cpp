@@ -43,7 +43,8 @@ void MatchCorrespondences::prepareInterface() {
     registerStream("in_model_vertices_xyz", &in_model_vertices_xyz_);
     registerStream("in_model_triangles", &in_model_triangles_);
     registerStream("in_model_bounding_boxes", &in_model_bounding_boxes_);
-    registerStream("out_object", &out_object_);
+    registerStream("out_object_name", &out_object_name_);
+    registerStream("out_object", &out_object_points_);
 
     // Register handlers
     registerHandler("onNewScene", bind(&MatchCorrespondences::onNewScene, this));
@@ -109,7 +110,8 @@ void MatchCorrespondences::onNewScene() {
     Types::Objects3D::Object3D object_3d;
     object_3d.setModelPoints(object_points3d);
     object_3d.setImagePoints(object_points2d);
-    out_object_.write(object_3d);
+    out_object_name_.write(model_name_);
+    out_object_points_.write(object_3d);
 }
 
 void MatchCorrespondences::onNewModel() {
@@ -124,6 +126,7 @@ void MatchCorrespondences::onNewModel() {
     model_bounding_boxes_ = in_model_bounding_boxes_.read();
 
     // TODO get all models
+    model_name_ = model_labels_[0];
     pcl::PointCloud<PointXYZSIFT>::Ptr model_cloud = model_clouds_xyzsift_[0];
     model_points_.clear();
     model_descriptors_.release();

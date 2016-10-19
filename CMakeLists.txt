@@ -20,5 +20,7 @@ endif (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 add_subdirectory(src)
 
+set(CMAKE_BUILD_TYPE Debug)
+
 rebuild_dcl_cache()
 

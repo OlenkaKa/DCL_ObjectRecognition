@@ -93,6 +93,7 @@ protected:
     ModelTriangles model_triangles_;
     ModelBoundingBoxes model_bounding_boxes_;
 
+    std::string model_name_;
     std::vector<cv::Point3f> model_points_;
     cv::Mat model_descriptors_;
 
@@ -115,7 +116,8 @@ protected:
     Base::DataStreamIn<ModelBoundingBoxes> in_model_bounding_boxes_;
 
     /// Output data streams
-    Base::DataStreamOut<Types::Objects3D::Object3D> out_object_;
+    Base::DataStreamOut<std::string> out_object_name_;
+    Base::DataStreamOut<Types::Objects3D::Object3D> out_object_points_;
 
     /// Properties
     Base::Property<float> ratio_;
