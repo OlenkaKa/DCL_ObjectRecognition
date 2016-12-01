@@ -1,6 +1,5 @@
 /*!
- * \file
- * \brief 
+ * \file MatchCorrespondences.hpp
  * \author Aleksandra Karbarczyk
  */
 
@@ -30,7 +29,8 @@ namespace MatchCorrespondences {
  * \class MatchCorrespondences
  * \brief MatchCorrespondences processor class.
  *
- * Description TODO
+ * Component responsible for finding matches between object model and image based on SIFT features.
+ * For now the component use only one model - the first from the list received from input stream.
  */
 class MatchCorrespondences : public Base::Component {
 public:
@@ -74,7 +74,7 @@ protected:
     bool onStop();
 
     /// Consts
-    static const unsigned int DESCRIPTOR_SIZE;
+    static const unsigned int DESCRIPTOR_SIZE;  // size of SIFT descriptor
 
     /// Model typedefs
     typedef std::vector<std::string> ModelLabels;
@@ -85,13 +85,12 @@ protected:
     typedef std::vector<std::vector<pcl::Vertices> > ModelBoundingBoxes;
 
     /// Model data
-    // TODO remove unnecessary
-    ModelLabels model_labels_;
-    ModelCloudsXYZRGB model_clouds_xyzrgb_;
-    ModelCloudsXYZSIFT model_clouds_xyzsift_;
-    ModelVerticesXYZ model_vertices_xyz_;
-    ModelTriangles model_triangles_;
-    ModelBoundingBoxes model_bounding_boxes_;
+//    ModelLabels model_labels_;
+//    ModelCloudsXYZRGB model_clouds_xyzrgb_;
+//    ModelCloudsXYZSIFT model_clouds_xyzsift_;
+//    ModelVerticesXYZ model_vertices_xyz_;
+//    ModelTriangles model_triangles_;
+//    ModelBoundingBoxes model_bounding_boxes_;
 
     std::string model_name_;
     std::vector<cv::Point3f> model_points_;

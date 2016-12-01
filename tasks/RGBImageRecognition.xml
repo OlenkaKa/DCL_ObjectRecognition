@@ -29,12 +29,17 @@
                 </Component>
 
                 <!-- Scene data -->
+                <!--
                 <Component name="Sequence" type="CvBasic:Sequence" priority="3" bump="0">
                     <param name="sequence.directory">%[TASK_LOCATION]%/../data/scenes/</param>
-                    <!--<param name="sequence.pattern">.*\.jpg</param>-->
-                    <!--<param name="sequence.pattern">scene2.jpg</param>-->
-                    <param name="sequence.pattern">h_back.png</param>
+                    <param name="sequence.pattern">.*\.jpg</param>
+                    <param name="sequence.pattern">scene2.jpg</param>
+                    <param name="sequence.pattern">scene4-min.jpg</param>
                     <param name="mode.loop">1</param>
+                </Component>
+                -->
+                <Component name="Sequence" type="ROSIntegration:ImageSubscriber" priority="3" bump="0">
+                    <param name="ros.topic">/camera/image</param>
                 </Component>
 
                 <!-- Processing -->

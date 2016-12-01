@@ -1,6 +1,5 @@
 /*!
- * \file
- * \brief
+ * \file MatchCorrespondences.cpp
  * \author Aleksandra Karbarczyk
  */
 
@@ -125,7 +124,6 @@ void MatchCorrespondences::onNewModel() {
     model_triangles_ = in_model_triangles_.read();
     model_bounding_boxes_ = in_model_bounding_boxes_.read();
 
-    // TODO get all models
     model_name_ = model_labels_[0];
     pcl::PointCloud<PointXYZSIFT>::Ptr model_cloud = model_clouds_xyzsift_[0];
     model_points_.clear();
@@ -145,7 +143,7 @@ void MatchCorrespondences::onNewModel() {
 
 void MatchCorrespondences::onRatioChanged(float old_value, float new_value) {
     if (new_value > 1.0 || new_value < 0.0) {
-        CLOG(LWARNING) << "Cannot set radio to " << new_value << " (ratio = " << old_value << " will be used)";
+        CLOG(LWARNING) << "Cannot set radio to " << new_value << ". Old value will be used: ratio = " << old_value << ".";
         ratio_ = old_value;
     } else {
         ratio_ = new_value;
@@ -155,10 +153,13 @@ void MatchCorrespondences::onRatioChanged(float old_value, float new_value) {
 
 void MatchCorrespondences::onMatcherTypeChanged(const string& old_value, const string& new_value) {
     CLOG(LERROR) << "MatchCorrespondences::onMatcherTypeChanged";
-    if (validMatcherType(new_value)) {
+    if (old_value.compare(new_value) == 0) {
+        CLOG(LWARNING) << "New matcher type is the same as previous one.";
+    } else if (validMatcherType(new_value)) {
         matcher_type_ = new_value;
         initMatcher();
     }
+}
 }
 
 void MatchCorrespondences::initMatcher() {
