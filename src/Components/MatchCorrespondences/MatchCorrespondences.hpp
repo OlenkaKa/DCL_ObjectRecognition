@@ -85,12 +85,12 @@ protected:
     typedef std::vector<std::vector<pcl::Vertices> > ModelBoundingBoxes;
 
     /// Model data
-//    ModelLabels model_labels_;
-//    ModelCloudsXYZRGB model_clouds_xyzrgb_;
-//    ModelCloudsXYZSIFT model_clouds_xyzsift_;
-//    ModelVerticesXYZ model_vertices_xyz_;
-//    ModelTriangles model_triangles_;
-//    ModelBoundingBoxes model_bounding_boxes_;
+    ModelLabels model_labels_;
+    ModelCloudsXYZRGB model_clouds_xyzrgb_;
+    ModelCloudsXYZSIFT model_clouds_xyzsift_;
+    ModelVerticesXYZ model_vertices_xyz_;
+    ModelTriangles model_triangles_;
+    ModelBoundingBoxes model_bounding_boxes_;
 
     std::string model_name_;
     std::vector<cv::Point3f> model_points_;

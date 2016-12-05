@@ -160,7 +160,6 @@ void MatchCorrespondences::onMatcherTypeChanged(const string& old_value, const s
         initMatcher();
     }
 }
-}
 
 void MatchCorrespondences::initMatcher() {
     if (string("flann").compare(matcher_type_) == 0) {

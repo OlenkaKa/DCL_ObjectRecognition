@@ -17,10 +17,10 @@
             <Executor name="Exec1" period="1">
                 <!-- Camera data -->
                 <Component name="CameraInfo" type="CvCoreTypes:CameraInfoProvider" priority="1">
-                    <param name="width">768</param>
-                    <param name="height">576</param>
-                    <param name="camera_matrix">525 0 319.5 ; 0 525 239.5 ; 0 0 1</param>
-                    <param name="dist_coeffs">0 0 0 0 0 0 0 0</param>
+                    <param name="width">1296</param>
+                    <param name="height">1032</param>
+                    <param name="camera_matrix">1011.983951 0.000000 626.457305 ; 0.000000 1006.378346 558.452602 ; 0 0 1</param>
+                    <param name="dist_coeffs">-0.379413 0.125639 -0.002386 0.001406 0.000000</param>
                 </Component>
 
                 <!-- Model data -->
@@ -39,7 +39,7 @@
                 </Component>
                 -->
                 <Component name="Sequence" type="ROSIntegration:ImageSubscriber" priority="3" bump="0">
-                    <param name="ros.topic">/camera/image</param>
+                    <param name="ros.topic">/camera_track/image_color</param>
                 </Component>
 
                 <!-- Processing -->
@@ -53,8 +53,8 @@
                 <Component name="SolvePnP" type="CvBasic:CvSolvePnP" priority="6" bump="0">
                 </Component>
 
+                <!-- <param name="parent.frame">/p_c_optical_frame</param> -->
                 <Component name="ROSPublisher" type="ROSIntegration:RecognizedObjectPublisher" priority="7" bump="0">
-                    <!-- <param name="parent.frame">/p_c_optical_frame</param> -->
                     <param name="parent.frame">/t_c_optical_frame</param>
                     <param name="ros.node">recognize_object_node</param>
                     <param name="ros.topic">recognized_objects</param>
