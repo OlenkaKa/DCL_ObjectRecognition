@@ -16,16 +16,19 @@
         <Subtask name="Processing">
             <Executor name="Exec1" period="1">
                 <!-- Camera data -->
-                <Component name="CameraInfo" type="CvCoreTypes:CameraInfoProvider" priority="1">
+                <Component name="CameraInfo" type="CvCoreTypes:CameraInfoProvider" priority="1" bump="0">
                     <param name="width">1296</param>
                     <param name="height">1032</param>
-                    <param name="camera_matrix">1011.983951 0.000000 626.457305 ; 0.000000 1006.378346 558.452602 ; 0 0 1</param>
-                    <param name="dist_coeffs">-0.379413 0.125639 -0.002386 0.001406 0.000000</param>
+                    <param name="camera_matrix">989.155334 0.000000 604.609004 ; 0.000000 982.584776 536.383309 ; 0 0 1</param>
+                    <param name="dist_coeffs">-0.363068 0.097848 -0.001416 0.003060 0.000000</param>
                 </Component>
 
                 <!-- Model data -->
                 <Component name="SOMJSONReader" type="SIFTObjectModel:SOMJSONReader" priority="2" bump="0">
+                    <!--
                     <param name="filenames">%[TASK_LOCATION]%/../data/herbapol_mieta_model/herbapol_mieta1.json</param>
+                    -->
+                    <param name="filenames">%[TASK_LOCATION]%/../data/ahmad_model/ahmad1.json</param>
                 </Component>
 
                 <!-- Scene data -->
@@ -47,10 +50,11 @@
                 </Component>
 
                 <Component name="MatchCorrespondences" type="ObjectRecognition:MatchCorrespondences" priority="5" bump="0">
-                    <param name="ratio">0.8</param>
+                    <param name="ratio">0.9</param>
                 </Component>
 
-                <Component name="SolvePnP" type="CvBasic:CvSolvePnP" priority="6" bump="0">
+                <Component name="SolvePnP" type="CvBasic:CvSolvePnPRansac" priority="6" bump="0">
+                    <param name="minInliersCount">0.95</param>
                 </Component>
 
                 <!-- <param name="parent.frame">/p_c_optical_frame</param> -->
@@ -118,7 +122,11 @@
             <sink>ROSPublisher.in_object_name</sink>
         </Source>
 
-        <Source name="SolvePnP.out_homogMatrix">
+        <Source name="MatchCorrespondences.out_object_confidence">
+            <sink>ROSPublisher.in_object_confidence</sink>
+        </Source>
+
+        <Source name="SolvePnP.out_homog_matrix">
             <sink>ROSPublisher.in_object_pose</sink>
         </Source>
     </DataStreams>

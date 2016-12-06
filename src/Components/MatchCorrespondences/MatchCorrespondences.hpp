@@ -95,6 +95,8 @@ protected:
     std::string model_name_;
     std::vector<cv::Point3f> model_points_;
     cv::Mat model_descriptors_;
+//    std::vector<cv::Point3f> model_vertices_;
+//    std::vector<>
 
     /// Matcher
     cv::Ptr<cv::DescriptorMatcher> matcher_;
@@ -117,6 +119,7 @@ protected:
     /// Output data streams
     Base::DataStreamOut<std::string> out_object_name_;
     Base::DataStreamOut<Types::Objects3D::Object3D> out_object_points_;
+    Base::DataStreamOut<double> out_object_confidence_;
 
     /// Properties
     Base::Property<float> ratio_;
@@ -130,7 +133,12 @@ protected:
 
     /// Others
     void initMatcher();
-    bool validMatcherType(const std::string& value);
+    void updateMatcher(const std::string &new_matcher_type);
+    void ratioTest(const vector<vector<cv::DMatch> >& matches, vector<cv::DMatch>& good_matches);
+    void symmetryTest(const std::vector<cv::DMatch>& matches1,
+                      const std::vector<cv::DMatch>& matches2,
+                      std::vector<cv::DMatch>& symMatches);
+    double calculateConfidence(const std::vector<cv::Point3f>& points3d);
 };
 
 } //: namespace MatchCorrespondences

@@ -44,6 +44,7 @@ void MatchCorrespondences::prepareInterface() {
     registerStream("in_model_bounding_boxes", &in_model_bounding_boxes_);
     registerStream("out_object_name", &out_object_name_);
     registerStream("out_object", &out_object_points_);
+    registerStream("out_object_confidence", &out_object_confidence_);
 
     // Register handlers
     registerHandler("onNewScene", bind(&MatchCorrespondences::onNewScene, this));
@@ -87,15 +88,15 @@ void MatchCorrespondences::onNewScene() {
     vector<KeyPoint> scene_keypoints = in_scene_features_.read().features;
     Mat scene_descriptors = in_scene_descriptors_.read();
 
-    vector<vector<DMatch> > matches;
-    matcher_->knnMatch(scene_descriptors, model_descriptors_, matches, 2);
+    vector<vector<DMatch> > matches1, matches2;
+    matcher_->knnMatch(scene_descriptors, model_descriptors_, matches1, 2);
+    matcher_->knnMatch(model_descriptors_, scene_descriptors, matches2, 2);
 
-    vector<DMatch> good_matches;
-    for (vector<vector<DMatch> >::iterator it = matches.begin(), end_it = matches.end(); it != end_it; ++it) {
-        if ((*it)[0].distance / (*it)[1].distance < ratio_) {
-            good_matches.push_back((*it)[0]);
-        }
-    }
+    vector<DMatch> good_matches1, good_matches2, good_matches;
+    ratioTest(matches1, good_matches1);
+    ratioTest(matches2, good_matches2);
+    symmetryTest(good_matches1, good_matches2, good_matches);
+
 
     vector<Point3f> object_points3d;
     vector<Point2f> object_points2d;
@@ -105,12 +106,27 @@ void MatchCorrespondences::onNewScene() {
         object_points2d.push_back(scene_keypoints[good_matches[i].queryIdx].pt);
     }
 
+//    CLOG(LNOTICE) << "3d: " << object_points3d.size();
+//    CLOG(LNOTICE) << "2d: " << object_points2d.size();
+//    CLOG(LNOTICE) << "-------------------------------";
+//
+//    for(int i = 0; i < object_points3d.size(); ++i) {
+//        Point3f p = object_points3d[i];
+//        Point2f ip = object_points2d[i];
+//        CLOG(LNOTICE) << p.x << "\t" << p.y << "\t" << p.z << "\t | \t" << ip.x << "\t" << ip.y;
+//    }
+
     // write result
-    Types::Objects3D::Object3D object_3d;
-    object_3d.setModelPoints(object_points3d);
-    object_3d.setImagePoints(object_points2d);
-    out_object_name_.write(model_name_);
-    out_object_points_.write(object_3d);
+    double object_confidence = calculateConfidence(object_points3d);
+    CLOG(LNOTICE) << "Confidence: " << object_confidence;
+    //if (object_confidence > 0.06) {
+        Types::Objects3D::Object3D object_3d;
+        object_3d.setModelPoints(object_points3d);
+        object_3d.setImagePoints(object_points2d);
+        out_object_name_.write(model_name_);
+        out_object_points_.write(object_3d);
+        out_object_confidence_.write(object_confidence);
+    //}
 }
 
 void MatchCorrespondences::onNewModel() {
@@ -138,7 +154,7 @@ void MatchCorrespondences::onNewModel() {
         row.assign(it->descriptor, it->descriptor + DESCRIPTOR_SIZE);
         temp_descriptors.row(row_idx) = Mat(row).t();
     }
-    model_descriptors_ = temp_descriptors;
+    model_descriptors_ = temp_descriptors.clone();
 }
 
 void MatchCorrespondences::onRatioChanged(float old_value, float new_value) {
@@ -154,22 +170,99 @@ void MatchCorrespondences::onRatioChanged(float old_value, float new_value) {
 void MatchCorrespondences::onMatcherTypeChanged(const string& old_value, const string& new_value) {
     CLOG(LERROR) << "MatchCorrespondences::onMatcherTypeChanged";
     if (old_value.compare(new_value) == 0) {
-        CLOG(LWARNING) << "New matcher type is the same as previous one.";
-    } else if (validMatcherType(new_value)) {
-        matcher_type_ = new_value;
-        initMatcher();
+        CLOG(LWARNING) << "New matcher type is the same as the previous one.";
+    } else {
+        updateMatcher(new_value);
     }
 }
 
 void MatchCorrespondences::initMatcher() {
     if (string("flann").compare(matcher_type_) == 0) {
         matcher_ = makePtr<FlannBasedMatcher>();
+    } else {
+        CLOG(LWARNING) << "Invalid matcher type: " << matcher_type_ << ". Use default: flann";
+        matcher_type_ = "flann";
+        matcher_ = makePtr<FlannBasedMatcher>();
     }
 }
 
-bool MatchCorrespondences::validMatcherType(const string& value) {
-    // TODO
-    return true;
+
+void MatchCorrespondences::updateMatcher(const std::string &new_matcher_type_) {
+    if (string("flann").compare(new_matcher_type_) == 0) {
+        matcher_ = makePtr<FlannBasedMatcher>();
+    } else {
+        CLOG(LWARNING) << "Invalid matcher type: " << new_matcher_type_;
+        return;
+    }
+    matcher_type_ = new_matcher_type_;
+}
+
+struct unique_points_compare {
+    bool operator()(const Point3f &lhs, const Point3f &rhs) const {
+        if (lhs.x < rhs.x) {
+            return true;
+        } else if (lhs.x > rhs.x) {
+            return false;
+        } else {
+            if (lhs.y < rhs.y) {
+                return true;
+            } else if (lhs.y > rhs.y) {
+                return false;
+            } else {
+                return lhs.z < rhs.z;
+            }
+        }
+    }
+};
+
+double MatchCorrespondences::calculateConfidence(const vector<Point3f> &points3d) {
+    pcl::PointCloud<PointXYZSIFT>::Ptr model_cloud = model_clouds_xyzsift_[0];
+    CLOG(LNOTICE) << "Model points number: " << model_cloud->size();
+    CLOG(LNOTICE) << "Correspondences number: " << points3d.size();
+    std::set<cv::Point3f, unique_points_compare> unique_points(points3d.begin(), points3d.end());
+
+//    CLOG(LNOTICE) << "A: "<< ((double) unique_points.size() / (double) model_cloud->size());
+//    CLOG(LNOTICE) << "B: "<< ((double) points3d.size() / (double) model_cloud->size());
+
+    return (double) unique_points.size() / (double) model_cloud->size();
+//    return (double) points3d.size() / (double) model_cloud->size();
+}
+
+void MatchCorrespondences::ratioTest(const vector<vector<DMatch> >& matches, vector<DMatch>& good_matches) {
+    for (vector<vector<DMatch> >::const_iterator it = matches.begin(), end_it = matches.end(); it != end_it; ++it) {
+        if ((*it)[0].distance / (*it)[1].distance < ratio_) {
+            good_matches.push_back((*it)[0]);
+        }
+    }
+}
+
+void MatchCorrespondences::symmetryTest(const vector<DMatch>& matches1,
+                                        const vector<DMatch>& matches2,
+                                        vector<DMatch>& symMatches) {
+    // for all matches image 1 -> image 2
+    for (std::vector<cv::DMatch>::const_iterator
+                 matchIterator1 = matches1.begin(); matchIterator1 != matches1.end(); ++matchIterator1)
+    {
+
+        // for all matches image 2 -> image 1
+        for (std::vector<cv::DMatch>::const_iterator
+                     matchIterator2 = matches2.begin(); matchIterator2 != matches2.end(); ++matchIterator2)
+        {
+            // Match symmetry test
+            if ((*matchIterator1).queryIdx ==
+                (*matchIterator2).trainIdx &&
+                (*matchIterator2).queryIdx ==
+                (*matchIterator1).trainIdx)
+            {
+                // add symmetrical match
+                symMatches.push_back(
+                        cv::DMatch((*matchIterator1).queryIdx,
+                                   (*matchIterator1).trainIdx,
+                                   (*matchIterator1).distance));
+                break; // next match in image 1 -> image 2
+            }
+        }
+    }
 }
 
 } //: namespace MatchCorrespondences
