@@ -25,19 +25,17 @@
 
                 <!-- Model data -->
                 <Component name="SOMJSONReader" type="SIFTObjectModel:SOMJSONReader" priority="2" bump="0">
-                    <!--
                     <param name="filenames">%[TASK_LOCATION]%/../data/herbapol_mieta_model/herbapol_mieta1.json</param>
-                    -->
+                    <!--
                     <param name="filenames">%[TASK_LOCATION]%/../data/ahmad_model/ahmad1.json</param>
+                    -->
                 </Component>
 
                 <!-- Scene data -->
                 <!--
                 <Component name="Sequence" type="CvBasic:Sequence" priority="3" bump="0">
                     <param name="sequence.directory">%[TASK_LOCATION]%/../data/scenes/</param>
-                    <param name="sequence.pattern">.*\.jpg</param>
-                    <param name="sequence.pattern">scene2.jpg</param>
-                    <param name="sequence.pattern">scene4-min.jpg</param>
+                    <param name="sequence.pattern">herbapol-mieta1-1.png</param>
                     <param name="mode.loop">1</param>
                 </Component>
                 -->
@@ -53,15 +51,21 @@
                     <param name="ratio">0.9</param>
                 </Component>
 
-                <Component name="SolvePnP" type="CvBasic:CvSolvePnPRansac" priority="6" bump="0">
-                    <param name="minInliersCount">0.95</param>
+                <Component name="ROSSubscriber" type="ROSIntegration:RecognizedObjectSubscriber" priority="6" bump="0">
+                    <param name="parent.frame">/t_c_optical_frame</param>
+                    <param name="ros.topic">/global_recognized_objects</param>
+                </Component>
+
+                <Component name="SolvePnP" type="CvBasic:CvSolvePnPRansac" priority="7" bump="0">
+                    <param name="confidence">0.95</param>
+                    <param name="useExtrinsicGuess">true</param>
                 </Component>
 
                 <!-- <param name="parent.frame">/p_c_optical_frame</param> -->
-                <Component name="ROSPublisher" type="ROSIntegration:RecognizedObjectPublisher" priority="7" bump="0">
+                <Component name="ROSPublisher" type="ROSIntegration:RecognizedObjectPublisher" priority="8" bump="0">
                     <param name="parent.frame">/t_c_optical_frame</param>
                     <param name="ros.node">recognize_object_node</param>
-                    <param name="ros.topic">recognized_objects</param>
+                    <param name="ros.topic">/recognized_objects</param>
                 </Component>
 
             </Executor>
@@ -109,6 +113,10 @@
         </Source>
 
         <!-- Find object position -->
+        <Source name="ROSSubscriber.out_homog_matrix">
+            <sink>SolvePnP.in_homog_matrix</sink>
+        </Source>
+
         <Source name="MatchCorrespondences.out_object">
             <sink>SolvePnP.in_object3d</sink>
         </Source>
@@ -120,6 +128,14 @@
         <!-- Send result to ROS -->
         <Source name="MatchCorrespondences.out_object_name">
             <sink>ROSPublisher.in_object_name</sink>
+        </Source>
+
+        <Source name="SOMJSONReader.out_model_vertices_xyz">
+            <sink>ROSPublisher.in_object_vertices_xyz</sink>
+        </Source>
+
+        <Source name="SOMJSONReader.out_model_triangles">
+            <sink>ROSPublisher.in_object_triangles</sink>
         </Source>
 
         <Source name="MatchCorrespondences.out_object_confidence">
