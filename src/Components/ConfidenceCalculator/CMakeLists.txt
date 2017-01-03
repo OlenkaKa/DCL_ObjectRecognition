@@ -8,6 +8,6 @@ file(GLOB files *.cpp)
 add_library(ConfidenceCalculator SHARED ${files})
 
 # Link external libraries
-target_link_libraries(ConfidenceCalculator ${DisCODe_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(ConfidenceCalculator ${DisCODe_LIBRARIES} ${Boost_LIBRARIES} ${OpenCV_LIBRARIES})
 
 install_component(ConfidenceCalculator)

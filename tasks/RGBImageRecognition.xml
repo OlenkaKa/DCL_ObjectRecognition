@@ -58,11 +58,14 @@
 
                 <Component name="SolvePnP" type="CvBasic:CvSolvePnPRansac" priority="7" bump="0">
                     <param name="confidence">0.95</param>
-                    <param name="useExtrinsicGuess">true</param>
+                </Component>
+
+                <Component name="ConfidenceCalculator" type="ObjectRecognition:ConfidenceCalculator" priority="8" bump="0">
+                    <param name="min_inliers">12</param>
                 </Component>
 
                 <!-- <param name="parent.frame">/p_c_optical_frame</param> -->
-                <Component name="ROSPublisher" type="ROSIntegration:RecognizedObjectPublisher" priority="8" bump="0">
+                <Component name="ROSPublisher" type="ROSIntegration:RecognizedObjectPublisher" priority="9" bump="0">
                     <param name="parent.frame">/t_c_optical_frame</param>
                     <param name="ros.node">recognize_object_node</param>
                     <param name="ros.topic">/recognized_objects</param>
@@ -112,17 +115,22 @@
             <sink>MatchCorrespondences.in_model_bounding_boxes</sink>
         </Source>
 
-        <!-- Find object position -->
+        <!-- Find object position and calculate confidence -->
         <Source name="ROSSubscriber.out_homog_matrix">
             <sink>SolvePnP.in_homog_matrix</sink>
         </Source>
 
         <Source name="MatchCorrespondences.out_object">
             <sink>SolvePnP.in_object3d</sink>
+            <sink>ConfidenceCalculator.in_object_points</sink>
         </Source>
 
         <Source name="CameraInfo.out_camera_info">
             <sink>SolvePnP.in_camera_info</sink>
+        </Source>
+
+        <Source name="SolvePnP.out_inliers">
+            <sink>ConfidenceCalculator.in_inliers</sink>
         </Source>
 
         <!-- Send result to ROS -->
@@ -138,7 +146,7 @@
             <sink>ROSPublisher.in_object_triangles</sink>
         </Source>
 
-        <Source name="MatchCorrespondences.out_object_confidence">
+        <Source name="ConfidenceCalculator.out_confidence">
             <sink>ROSPublisher.in_object_confidence</sink>
         </Source>
 

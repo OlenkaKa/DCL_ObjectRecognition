@@ -75,7 +75,7 @@ protected:
     // Handlers
 
     // Properties
-    Base::Property<int> min_inliers_num;
+    Base::Property<int> min_inliers;
 
 
     // Handlers

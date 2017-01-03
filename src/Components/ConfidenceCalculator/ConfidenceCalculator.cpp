@@ -12,13 +12,15 @@
 
 #include <boost/bind.hpp>
 
+using namespace std;
+
 namespace Processors {
 namespace ConfidenceCalculator {
 
 ConfidenceCalculator::ConfidenceCalculator(const std::string &name) :
         Base::Component(name),
-        min_inliers_num("min_inliers_num", 10, "min_inliers") {
-    registerProperty(min_inliers_num);
+        min_inliers("min_inliers", 10) {
+    registerProperty(min_inliers);
 }
 
 ConfidenceCalculator::~ConfidenceCalculator() {
@@ -52,6 +54,28 @@ bool ConfidenceCalculator::onStart() {
 }
 
 void ConfidenceCalculator::onNewObjectData() {
+    vector<int> inliers = in_inliers.read();
+    Types::Objects3D::Object3D object_points = in_object_points.read();
+
+    double confidence;
+
+    size_t model_points_num = object_points.getModelPoints().size();
+    size_t inliers_num = inliers.size();
+
+    if (model_points_num == 0) {
+        confidence = 0.0;
+    } else {
+        confidence = (double) inliers_num / (double) model_points_num;
+        if (inliers_num < min_inliers) {
+            confidence /= 2;
+        }
+    }
+//    CLOG(LERROR) << "----------------------------";
+//    CLOG(LERROR) << "model_points_num: " << model_points_num;
+//    CLOG(LERROR) << "inliers_num: " << inliers_num;
+//    CLOG(LERROR) << "CONFIDENCE: " << confidence;
+//    CLOG(LERROR) << "----------------------------";
+    out_confidence.write(confidence);
 }
 
 } //: namespace ConfidenceCalculator

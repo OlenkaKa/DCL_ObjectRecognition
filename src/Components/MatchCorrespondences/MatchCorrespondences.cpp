@@ -44,7 +44,6 @@ void MatchCorrespondences::prepareInterface() {
     registerStream("in_model_bounding_boxes", &in_model_bounding_boxes_);
     registerStream("out_object_name", &out_object_name_);
     registerStream("out_object", &out_object_points_);
-    registerStream("out_object_confidence", &out_object_confidence_);
 
     // Register handlers
     registerHandler("onNewScene", bind(&MatchCorrespondences::onNewScene, this));
@@ -117,16 +116,11 @@ void MatchCorrespondences::onNewScene() {
 //    }
 
     // write result
-    double object_confidence = calculateConfidence(object_points3d);
-    CLOG(LNOTICE) << "Confidence: " << object_confidence;
-    //if (object_confidence > 0.06) {
-        Types::Objects3D::Object3D object_3d;
-        object_3d.setModelPoints(object_points3d);
-        object_3d.setImagePoints(object_points2d);
-        out_object_name_.write(model_name_);
-        out_object_points_.write(object_3d);
-        out_object_confidence_.write(object_confidence);
-    //}
+    Types::Objects3D::Object3D object_3d;
+    object_3d.setModelPoints(object_points3d);
+    object_3d.setImagePoints(object_points2d);
+    out_object_name_.write(model_name_);
+    out_object_points_.write(object_3d);
 }
 
 void MatchCorrespondences::onNewModel() {
@@ -195,37 +189,6 @@ void MatchCorrespondences::updateMatcher(const std::string &new_matcher_type_) {
         return;
     }
     matcher_type_ = new_matcher_type_;
-}
-
-struct unique_points_compare {
-    bool operator()(const Point3f &lhs, const Point3f &rhs) const {
-        if (lhs.x < rhs.x) {
-            return true;
-        } else if (lhs.x > rhs.x) {
-            return false;
-        } else {
-            if (lhs.y < rhs.y) {
-                return true;
-            } else if (lhs.y > rhs.y) {
-                return false;
-            } else {
-                return lhs.z < rhs.z;
-            }
-        }
-    }
-};
-
-double MatchCorrespondences::calculateConfidence(const vector<Point3f> &points3d) {
-    pcl::PointCloud<PointXYZSIFT>::Ptr model_cloud = model_clouds_xyzsift_[0];
-    CLOG(LNOTICE) << "Model points number: " << model_cloud->size();
-    CLOG(LNOTICE) << "Correspondences number: " << points3d.size();
-    std::set<cv::Point3f, unique_points_compare> unique_points(points3d.begin(), points3d.end());
-
-//    CLOG(LNOTICE) << "A: "<< ((double) unique_points.size() / (double) model_cloud->size());
-//    CLOG(LNOTICE) << "B: "<< ((double) points3d.size() / (double) model_cloud->size());
-
-    return (double) unique_points.size() / (double) model_cloud->size();
-//    return (double) points3d.size() / (double) model_cloud->size();
 }
 
 void MatchCorrespondences::ratioTest(const vector<vector<DMatch> >& matches, vector<DMatch>& good_matches) {
