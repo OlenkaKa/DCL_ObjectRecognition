@@ -133,10 +133,11 @@ protected:
     /// Others
     void initMatcher();
     void updateMatcher(const std::string &new_matcher_type);
-    void ratioTest(const vector<vector<cv::DMatch> >& matches, vector<cv::DMatch>& good_matches);
-    void symmetryTest(const std::vector<cv::DMatch>& matches1,
-                      const std::vector<cv::DMatch>& matches2,
-                      std::vector<cv::DMatch>& symMatches);
+    void ratioTest(std::vector<std::vector<cv::DMatch> >& matches);
+
+    void symmetryTest(const std::vector<std::vector<cv::DMatch> >& matches1,
+                      const std::vector<std::vector<cv::DMatch> >& matches2,
+                      std::vector<cv::DMatch>& symmetryMatches);
 };
 
 } //: namespace MatchCorrespondences

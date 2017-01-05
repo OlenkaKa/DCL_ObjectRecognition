@@ -88,13 +88,14 @@ void MatchCorrespondences::onNewScene() {
     Mat scene_descriptors = in_scene_descriptors_.read();
 
     vector<vector<DMatch> > matches1, matches2;
-    matcher_->knnMatch(scene_descriptors, model_descriptors_, matches1, 2);
-    matcher_->knnMatch(model_descriptors_, scene_descriptors, matches2, 2);
+    matcher_->knnMatch(scene_descriptors, model_descriptors_, matches1, 7);
+    matcher_->knnMatch(model_descriptors_, scene_descriptors, matches2, 7);
 
-    vector<DMatch> good_matches1, good_matches2, good_matches;
-    ratioTest(matches1, good_matches1);
-    ratioTest(matches2, good_matches2);
-    symmetryTest(good_matches1, good_matches2, good_matches);
+    ratioTest(matches1);
+    ratioTest(matches2);
+
+    vector<DMatch> good_matches;
+    symmetryTest(matches1, matches2, good_matches);
 
 
     vector<Point3f> object_points3d;
@@ -191,38 +192,31 @@ void MatchCorrespondences::updateMatcher(const std::string &new_matcher_type_) {
     matcher_type_ = new_matcher_type_;
 }
 
-void MatchCorrespondences::ratioTest(const vector<vector<DMatch> >& matches, vector<DMatch>& good_matches) {
-    for (vector<vector<DMatch> >::const_iterator it = matches.begin(), end_it = matches.end(); it != end_it; ++it) {
-        if ((*it)[0].distance / (*it)[1].distance < ratio_) {
-            good_matches.push_back((*it)[0]);
+void MatchCorrespondences::ratioTest(vector<vector<DMatch> >& matches) {
+    for (vector<vector<DMatch> >::iterator feature_it = matches.begin(); feature_it != matches.end(); ++feature_it) {
+        double nearest_distance = feature_it->front().distance;
+        for (vector<DMatch>::iterator match_it = feature_it->begin() + 1; match_it != feature_it->end(); ) {
+            if (nearest_distance / match_it->distance < ratio_) {
+                ++match_it;
+            } else {
+                match_it = feature_it->erase(match_it);
+            }
         }
     }
 }
 
-void MatchCorrespondences::symmetryTest(const vector<DMatch>& matches1,
-                                        const vector<DMatch>& matches2,
-                                        vector<DMatch>& symMatches) {
-    // for all matches image 1 -> image 2
-    for (std::vector<cv::DMatch>::const_iterator
-                 matchIterator1 = matches1.begin(); matchIterator1 != matches1.end(); ++matchIterator1)
-    {
-
-        // for all matches image 2 -> image 1
-        for (std::vector<cv::DMatch>::const_iterator
-                     matchIterator2 = matches2.begin(); matchIterator2 != matches2.end(); ++matchIterator2)
-        {
-            // Match symmetry test
-            if ((*matchIterator1).queryIdx ==
-                (*matchIterator2).trainIdx &&
-                (*matchIterator2).queryIdx ==
-                (*matchIterator1).trainIdx)
-            {
+void MatchCorrespondences::symmetryTest(const vector<vector<DMatch> >& matches1,
+                                        const vector<vector<DMatch> >& matches2,
+                                        vector<DMatch> &symmetryMatches) {
+    DMatch dmatch1, dmatch2;
+    for (int i = 0; i < matches1.size(); ++i) {
+        for (int j = 0; j < matches1[i].size(); ++j) {
+            dmatch1 = matches1[i][j];
+            dmatch2 = matches2[i][j];
+            if (dmatch1.queryIdx == dmatch2.trainIdx &&
+                dmatch1.trainIdx == dmatch2.queryIdx) {
                 // add symmetrical match
-                symMatches.push_back(
-                        cv::DMatch((*matchIterator1).queryIdx,
-                                   (*matchIterator1).trainIdx,
-                                   (*matchIterator1).distance));
-                break; // next match in image 1 -> image 2
+                symmetryMatches.push_back(dmatch1);
             }
         }
     }
