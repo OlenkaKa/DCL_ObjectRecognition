@@ -51,17 +51,19 @@
                     <param name="ratio">0.9</param>
                 </Component>
 
-                <Component name="ROSSubscriber" type="ROSIntegration:RecognizedObjectSubscriber" priority="6" bump="0">
-                    <param name="parent.frame">/t_c_optical_frame</param>
-                    <param name="ros.topic">/global_recognized_objects</param>
-                </Component>
+                <!--<Component name="ROSSubscriber" type="ROSIntegration:RecognizedObjectSubscriber" priority="6" bump="0">-->
+                    <!--<param name="parent.frame">/t_c_optical_frame</param>-->
+                    <!--<param name="ros.topic">/global_recognized_objects</param>-->
+                <!--</Component>-->
 
                 <Component name="SolvePnP" type="CvBasic:CvSolvePnPRansac" priority="7" bump="0">
                     <param name="confidence">0.95</param>
+                    <param name="create_hypotheses">1</param>
+                    <param name="min_inliers_for_hypothesis">30</param>
                 </Component>
 
                 <Component name="ConfidenceCalculator" type="ObjectRecognition:ConfidenceCalculator" priority="8" bump="0">
-                    <param name="min_inliers">12</param>
+                    <param name="min_inliers">30</param>
                 </Component>
 
                 <!-- <param name="parent.frame">/p_c_optical_frame</param> -->
@@ -116,9 +118,9 @@
         </Source>
 
         <!-- Find object position and calculate confidence -->
-        <Source name="ROSSubscriber.out_homog_matrix">
-            <sink>SolvePnP.in_homog_matrix</sink>
-        </Source>
+        <!--<Source name="ROSSubscriber.out_homog_matrix">-->
+            <!--<sink>SolvePnP.in_homog_matrix</sink>-->
+        <!--</Source>-->
 
         <Source name="MatchCorrespondences.out_object">
             <sink>SolvePnP.in_object3d</sink>
@@ -129,7 +131,7 @@
             <sink>SolvePnP.in_camera_info</sink>
         </Source>
 
-        <Source name="SolvePnP.out_inliers">
+        <Source name="SolvePnP.out_hypotheses_inliers_num">
             <sink>ConfidenceCalculator.in_inliers</sink>
         </Source>
 
@@ -146,12 +148,12 @@
             <sink>ROSPublisher.in_object_triangles</sink>
         </Source>
 
-        <Source name="ConfidenceCalculator.out_confidence">
-            <sink>ROSPublisher.in_object_confidence</sink>
+        <Source name="ConfidenceCalculator.out_confidences">
+            <sink>ROSPublisher.in_object_confidences</sink>
         </Source>
 
-        <Source name="SolvePnP.out_homog_matrix">
-            <sink>ROSPublisher.in_object_pose</sink>
+        <Source name="SolvePnP.out_hypotheses_homog_matrix">
+            <sink>ROSPublisher.in_object_poses</sink>
         </Source>
     </DataStreams>
 </Task>

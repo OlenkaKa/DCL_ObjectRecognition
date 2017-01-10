@@ -70,7 +70,7 @@ protected:
     Base::DataStreamIn <Types::Objects3D::Object3D> in_object_points;
 
     // Output data streams
-    Base::DataStreamOut<double> out_confidence;
+    Base::DataStreamOut<std::vector<double> > out_confidences;
 
     // Handlers
 

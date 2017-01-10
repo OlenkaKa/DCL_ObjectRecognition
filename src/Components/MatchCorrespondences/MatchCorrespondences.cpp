@@ -3,6 +3,7 @@
  * \author Aleksandra Karbarczyk
  */
 
+#include <algorithm>
 #include <memory>
 #include <string>
 
@@ -88,8 +89,8 @@ void MatchCorrespondences::onNewScene() {
     Mat scene_descriptors = in_scene_descriptors_.read();
 
     vector<vector<DMatch> > matches1, matches2;
-    matcher_->knnMatch(scene_descriptors, model_descriptors_, matches1, 7);
-    matcher_->knnMatch(model_descriptors_, scene_descriptors, matches2, 7);
+    matcher_->knnMatch(scene_descriptors, model_descriptors_, matches1, 2);
+    matcher_->knnMatch(model_descriptors_, scene_descriptors, matches2, 2);
 
     ratioTest(matches1);
     ratioTest(matches2);
@@ -154,7 +155,7 @@ void MatchCorrespondences::onNewModel() {
 
 void MatchCorrespondences::onRatioChanged(float old_value, float new_value) {
     if (new_value > 1.0 || new_value < 0.0) {
-        CLOG(LWARNING) << "Cannot set radio to " << new_value << ". Old value will be used: ratio = " << old_value << ".";
+        CLOG(LWARNING) << "Cannot set ratio to " << new_value << ". Old value will be used: ratio = " << old_value << ".";
         ratio_ = old_value;
     } else {
         ratio_ = new_value;
@@ -162,7 +163,7 @@ void MatchCorrespondences::onRatioChanged(float old_value, float new_value) {
     }
 }
 
-void MatchCorrespondences::onMatcherTypeChanged(const string& old_value, const string& new_value) {
+void MatchCorrespondences::onMatcherTypeChanged(const string &old_value, const string &new_value) {
     CLOG(LERROR) << "MatchCorrespondences::onMatcherTypeChanged";
     if (old_value.compare(new_value) == 0) {
         CLOG(LWARNING) << "New matcher type is the same as the previous one.";
@@ -181,7 +182,6 @@ void MatchCorrespondences::initMatcher() {
     }
 }
 
-
 void MatchCorrespondences::updateMatcher(const std::string &new_matcher_type_) {
     if (string("flann").compare(new_matcher_type_) == 0) {
         matcher_ = makePtr<FlannBasedMatcher>();
@@ -192,7 +192,7 @@ void MatchCorrespondences::updateMatcher(const std::string &new_matcher_type_) {
     matcher_type_ = new_matcher_type_;
 }
 
-void MatchCorrespondences::ratioTest(vector<vector<DMatch> >& matches) {
+void MatchCorrespondences::ratioTest(vector<vector<DMatch> > &matches) {
     for (vector<vector<DMatch> >::iterator feature_it = matches.begin(); feature_it != matches.end(); ++feature_it) {
         double nearest_distance = feature_it->front().distance;
         for (vector<DMatch>::iterator match_it = feature_it->begin() + 1; match_it != feature_it->end(); ) {
@@ -205,18 +205,30 @@ void MatchCorrespondences::ratioTest(vector<vector<DMatch> >& matches) {
     }
 }
 
-void MatchCorrespondences::symmetryTest(const vector<vector<DMatch> >& matches1,
-                                        const vector<vector<DMatch> >& matches2,
+void MatchCorrespondences::symmetryTest(const vector<vector<DMatch> > &matches1,
+                                        const vector<vector<DMatch> > &matches2,
                                         vector<DMatch> &symmetryMatches) {
-    DMatch dmatch1, dmatch2;
-    for (int i = 0; i < matches1.size(); ++i) {
-        for (int j = 0; j < matches1[i].size(); ++j) {
-            dmatch1 = matches1[i][j];
-            dmatch2 = matches2[i][j];
-            if (dmatch1.queryIdx == dmatch2.trainIdx &&
-                dmatch1.trainIdx == dmatch2.queryIdx) {
-                // add symmetrical match
-                symmetryMatches.push_back(dmatch1);
+    // for every match in matches1
+    for (const vector<DMatch> &dmatches1 : matches1) {
+        for (const DMatch &dmatch1 : dmatches1) {
+
+            // find matches from matches2 where queryIdx is the same as trainIdx in current match (dmatch1 from matches1)
+            vector<vector<DMatch> >::const_iterator dmatches2_it = find_if(matches2.begin(), matches2.end(),
+                    [&dmatch1](const vector<DMatch> &dmatches2) -> bool {
+                        if (dmatches2.size() < 1) {
+                            return false;
+                        }
+                        return dmatch1.trainIdx == dmatches2[0].queryIdx;
+                    });
+
+            if (dmatches2_it == std::end(matches2)) {
+                continue;
+            }
+
+            for (const DMatch &dmatch2 : (*dmatches2_it)) {
+                if (dmatch2.trainIdx == dmatch1.queryIdx) {
+                    symmetryMatches.push_back(dmatch1);
+                }
             }
         }
     }
