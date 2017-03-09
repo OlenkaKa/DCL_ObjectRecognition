@@ -66,15 +66,15 @@ void ConfidenceCalculator::onNewObjectData() {
         confidence = 0.0;
     } else {
         confidence = (double) inliers_num / (double) model_points_num;
-        if (inliers_num < min_inliers) {
+        if (inliers_num < min_inliers && confidence < 0.95) {
             confidence /= 2;
         }
     }
-//    CLOG(LERROR) << "----------------------------";
-//    CLOG(LERROR) << "model_points_num: " << model_points_num;
-//    CLOG(LERROR) << "inliers_num: " << inliers_num;
-//    CLOG(LERROR) << "CONFIDENCE: " << confidence;
-//    CLOG(LERROR) << "----------------------------";
+    CLOG(LERROR) << "----------------------------";
+    CLOG(LERROR) << "model_points_num: " << model_points_num;
+    CLOG(LERROR) << "inliers_num: " << inliers_num;
+    CLOG(LERROR) << "CONFIDENCE: " << confidence;
+    CLOG(LERROR) << "----------------------------";
     out_confidence.write(confidence);
 }
 
