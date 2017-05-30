@@ -57,19 +57,12 @@ void ConfidenceCalculator::onNewObjectData() {
     vector<int> inliers = in_inliers.read();
     Types::Objects3D::Object3D object_points = in_object_points.read();
 
-    double confidence;
-
     size_t model_points_num = object_points.getModelPoints().size();
     size_t inliers_num = inliers.size();
 
-    if (model_points_num == 0) {
-        confidence = 0.0;
-    } else {
-        confidence = (double) inliers_num / (double) model_points_num;
-        if (inliers_num < min_inliers && confidence < 0.95) {
-            confidence /= 2;
-        }
-    }
+    double confidence = model_points_num == 0 || inliers_num < min_inliers ?
+                        0.0 : (double) inliers_num / (double) model_points_num;
+
     CLOG(LERROR) << "----------------------------";
     CLOG(LERROR) << "model_points_num: " << model_points_num;
     CLOG(LERROR) << "inliers_num: " << inliers_num;
