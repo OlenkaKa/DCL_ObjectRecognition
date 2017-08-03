@@ -3,3 +3,7 @@
 add_component(MatchCorrespondences)
 
 add_component(ConfidenceCalculator)
+
+ADD_COMPONENT(MatchesVisualization)
+
+ADD_COMPONENT(ImageDarkConv)
