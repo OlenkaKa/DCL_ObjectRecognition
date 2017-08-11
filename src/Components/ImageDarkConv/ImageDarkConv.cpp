@@ -11,7 +11,6 @@
 #include "Common/Logger.hpp"
 
 #include <boost/bind.hpp>
-//#include <opencv2/highgui.hpp>
 
 using namespace cv;
 
@@ -59,14 +58,12 @@ void ImageDarkConv::onNewImage() {
                                image.at<Vec3b>(y, x)[2] * 0.299;
             for (int c = 0; c < 3; c++) {
                 image.at<Vec3b>(y, x)[c] =
-                        saturate_cast<uchar>(gray_value - 50);
+                        saturate_cast<uchar>( ((int)gray_value - 127) * 0.5 + 127 );
             }
         }
     }
 	out_img.write(image);
 }
-
-
 
 } //: namespace ImageDarkConv
 } //: namespace Processors
