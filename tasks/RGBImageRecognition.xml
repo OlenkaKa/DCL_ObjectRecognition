@@ -3,12 +3,9 @@
     <Reference>
         <Author>
             <name>Aleksandra Karbarczyk</name>
-            <link>akarbarczyk@gmail.com</link>
         </Author>
-
         <Description>
-            <brief>TODO</brief>
-            <full>TODO</full>
+            <brief>Master thesis - main task</brief>
         </Description>
     </Reference>
 
@@ -16,65 +13,21 @@
         <Subtask name="Processing">
             <Executor name="Exec1" period="1">
                 <!-- Camera data -->
-                <!--
-                [image]
-                width
-                1296
-                height
-                1032
-                [narrow_stereo]
-                camera matrix
-                1053.147162 0.000000 628.836060
-                0.000000 1057.453277 429.128464
-                0.000000 0.000000 1.000000
-                distortion
-                 -0.422741 0.157725 0.008960 -0.007736 0.000000
-                rectification
-                1.000000 0.000000 0.000000
-                0.000000 1.000000 0.000000
-                0.000000 0.000000 1.000000
-                projection
-                844.222351 0.000000 597.269786 0.000000
-                0.000000 931.401245 415.532373 0.000000
-                0.000000 0.000000 1.000000 0.000000
-
-                ('Wrote calibration data to', '/tmp/calibrationdata.tar.gz')
-                ('D = ', [-0.4227413424783063, 0.15772540224252135, 0.008960214275577704, -0.007736180359309134, 0.0])
-                ('K = ', [1053.1471616062456, 0.0, 628.8360601366066, 0.0, 1057.4532767393882, 429.12846369922187, 0.0, 0.0, 1.0])
-                ('R = ', [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0])
-                ('P = ', [844.2223510742188, 0.0, 597.2697860712215, 0.0, 0.0, 931.4012451171875, 415.53237328048635, 0.0, 0.0, 0.0, 1.0, 0.0])
-                # oST version 5.0 parameters
-                -->
-
                 <Component name="CameraInfo" type="CvCoreTypes:CameraInfoProvider" priority="1" bump="0">
-                    <!--<param name="width">1296</param>-->
-                    <!--<param name="height">1032</param>-->
-                    <!--<param name="camera_matrix">989.155334 0.000000 604.609004 ; 0.000000 982.584776 536.383309 ; 0 0 1</param>-->
-                    <!--<param name="dist_coeffs">-0.363068 0.097848 -0.001416 0.003060 0.000000</param>-->
-
                     <param name="width">1296</param>
                     <param name="height">1032</param>
-                    <param name="camera_matrix">1053.147162 0.000000 628.836060 ; 0.000000 1057.453277 429.128464 ; 0 0 1</param>
-                    <param name="dist_coeffs">-0.422741 0.157725 0.008960 -0.007736 0.000000</param>
+                    <param name="camera_matrix">1046.274527 0.000000 641.150154 ; 0.000000 1047.114204 524.654647 ; 0 0 1</param>
+                    <param name="dist_coeffs">-0.384774 0.161293 0.001606 0.001582 0.000000</param>
                 </Component>
 
                 <!-- Model data -->
                 <Component name="SOMJSONReader" type="SIFTObjectModel:SOMJSONReader" priority="2" bump="0">
-                    <!--<param name="filenames">%[TASK_LOCATION]%/../data/herbapol_mieta_model/herbapol_mieta1.json</param>-->
-                    <param name="filenames">%[TASK_LOCATION]%/../data/ahmad_model/ahmad1.json</param>
-                    <!--
-                    <param name="filenames">%[TASK_LOCATION]%/../data/lipton_earl_grey_classic_model/lipton_earl_grey_classic1.json</param>
-                    -->
+                    <!--<param name="filenames">%[TASK_LOCATION]%/../data/model/herbapol_mieta/herbapol_mieta.json</param>-->
+                    <param name="filenames">%[TASK_LOCATION]%/../data/model/mnich/mnich.json</param>
+                    <!--<param name="filenames">%[TASK_LOCATION]%/../data/model/sen/sen.json</param>-->
                 </Component>
 
                 <!-- Scene data -->
-                <!--
-                <Component name="Sequence" type="CvBasic:Sequence" priority="3" bump="0">
-                    <param name="sequence.directory">%[TASK_LOCATION]%/../data/scenes/</param>
-                    <param name="sequence.pattern">herbapol-mieta1-1.png</param>
-                    <param name="mode.loop">1</param>
-                </Component>
-                -->
                 <Component name="Sequence" type="ROSIntegration:ImageSubscriber" priority="3" bump="0">
                     <param name="ros.topic">/camera_track/image_color</param>
                 </Component>
@@ -102,10 +55,9 @@
                 </Component>
 
                 <Component name="ConfidenceCalculator" type="ObjectRecognition:ConfidenceCalculator" priority="9" bump="0">
-                    <param name="min_inliers">16</param>
+                    <param name="min_inliers">11</param>
                 </Component>
 
-                <!-- <param name="parent.frame">/p_c_optical_frame</param> -->
                 <Component name="ROSPublisher" type="ROSIntegration:RecognizedObjectPublisher" priority="10" bump="0">
                     <param name="parent.frame">/t_c_optical_frame</param>
                     <param name="ros.node">recognize_object_node</param>

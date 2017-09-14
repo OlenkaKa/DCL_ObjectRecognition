@@ -23,7 +23,6 @@ namespace ImageDarkConv {
  * \class ImageDarkConv
  * \brief ImageDarkConv processor class.
  *
- * description TODO
  */
 class ImageDarkConv: public Base::Component {
 public:

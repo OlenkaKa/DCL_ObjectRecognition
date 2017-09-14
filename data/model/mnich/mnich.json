@@ -1,0 +1,7 @@
+{
+    "name": "mnich",
+    "type": "SIFTObjectModel",
+    "mean_viewpoint_features_number": "-1",
+    "cloud_xyzsift": "mnich_cloud_xyzsift.pcd",
+    "cloud_xyzrgb": "mnich_cloud_xyzrgb.pcd"
+}

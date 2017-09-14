@@ -95,8 +95,6 @@ protected:
     std::string model_name_;
     std::vector<cv::Point3f> model_points_;
     cv::Mat model_descriptors_;
-//    std::vector<cv::Point3f> model_vertices_;
-//    std::vector<>
 
     /// Matcher
     cv::Ptr<cv::DescriptorMatcher> matcher_;

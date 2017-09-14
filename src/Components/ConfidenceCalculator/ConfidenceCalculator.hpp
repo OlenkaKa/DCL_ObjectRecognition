@@ -21,7 +21,6 @@ namespace ConfidenceCalculator {
  * \class ConfidenceCalculator
  * \brief ConfidenceCalculator processor class.
  *
- * TODO description
  */
 class ConfidenceCalculator : public Base::Component {
 public:

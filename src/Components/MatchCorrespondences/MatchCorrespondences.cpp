@@ -105,16 +105,6 @@ void MatchCorrespondences::onNewScene() {
         object_points2d.push_back(scene_keypoints[good_matches[i].queryIdx].pt);
     }
 
-//    CLOG(LNOTICE) << "3d: " << object_points3d.size();
-//    CLOG(LNOTICE) << "2d: " << object_points2d.size();
-//    CLOG(LNOTICE) << "-------------------------------";
-//
-//    for(int i = 0; i < object_points3d.size(); ++i) {
-//        Point3f p = object_points3d[i];
-//        Point2f ip = object_points2d[i];
-//        CLOG(LNOTICE) << p.x << "\t" << p.y << "\t" << p.z << "\t | \t" << ip.x << "\t" << ip.y;
-//    }
-
     // write result
     Types::Objects3D::Object3D object_3d;
     object_3d.setModelPoints(object_points3d);
